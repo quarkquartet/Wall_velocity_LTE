@@ -10,24 +10,24 @@ simplified interface to the :mod:`.transitionFinder` module, and providing
 several methods for plotting the potential and its phases.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+import sys
 
 import numpy as np
-from scipy import optimize
-import sys
-#sys.path.append('/home/tong/Chicago/EWPhT/cosmotransition_z2sb/cosmoTransitions/')
-
-#from cosmoTransitions.finiteT_test import Jb_spline as Jb
-from finiteT_test import Jb_spline as Jb 
-#from cosmoTransitions.finiteT_test import Jf_spline as Jf
-from finiteT_test import Jf_spline as Jf
 import transitionFinder_s as transitionFinder
 from cosmoTransitions import helper_functions
 
-import sys
-if sys.version_info >= (3,0):
+# from cosmoTransitions.finiteT_test import Jf_spline as Jf
+# from cosmoTransitions.finiteT_test import Jb_spline as Jb
+from finiteT_test import Jb_spline as Jb
+from finiteT_test import Jf_spline as Jf
+from scipy import optimize
+
+# sys.path.append('/home/tong/Chicago/EWPhT/cosmotransition_z2sb/cosmoTransitions/')
+
+
+if sys.version_info >= (3, 0):
     xrange = range
 
 """
@@ -48,9 +48,10 @@ def Jb(x):
 def Jf(x):
     y = -7.*math.pi**4/360. + math.pi**2*x/24.
     return y
-"""    
+"""
 
-class generic_potential():
+
+class generic_potential:
     """
     An abstract class from which one can easily create finite-temperature
     effective potentials.
@@ -122,12 +123,13 @@ class generic_potential():
         If None, the total number of degrees of freedom will be taken
         directly from :meth:`fermion_massSq`.
     """
+
     def __init__(self, *args, **dargs):
         self.Ndim = 0
-        self.x_eps = .001
-        self.T_eps = .001
+        self.x_eps = 0.001
+        self.T_eps = 0.001
         self.deriv_order = 4
-        self.renormScaleSq = 1000.**2
+        self.renormScaleSq = 1000.0**2
         self.Tmax = 1e3
 
         self.num_boson_dof = self.num_fermion_dof = None
@@ -139,8 +141,9 @@ class generic_potential():
         self.init(*args, **dargs)
 
         if self.Ndim <= 0:
-            raise ValueError("The number of dimensions in the potential must "
-                             "be at least 1.")
+            raise ValueError(
+                "The number of dimensions in the potential must " "be at least 1."
+            )
 
     def init(self, *args, **dargs):
         """
@@ -163,7 +166,7 @@ class generic_potential():
         input is an array of points, the output should be an array with the same
         shape (except for the last axis with shape `Ndim`).
         """
-        return X[...,0]*0
+        return X[..., 0] * 0
 
     def boson_massSq(self, X, T):
         """
@@ -202,18 +205,18 @@ class generic_potential():
         # The following is an example placeholder which has the correct output
         # shape. Since dof is zero, it does not contribute to the potential.
         Nboson = 2
-        phi1 = X[...,0]
-        #phi2 = X[...,1] # Comment out so that the placeholder doesn't
-                         # raise an exception for Ndim < 2.
-        m1 = .5 * phi1**2 + .2 * T**2  # First boson mass
-        m2 = .6 * phi1**2  # Second boson mass, no thermal mass correction
+        phi1 = X[..., 0]
+        # phi2 = X[...,1] # Comment out so that the placeholder doesn't
+        # raise an exception for Ndim < 2.
+        m1 = 0.5 * phi1**2 + 0.2 * T**2  # First boson mass
+        m2 = 0.6 * phi1**2  # Second boson mass, no thermal mass correction
         massSq = np.empty(m1.shape + (Nboson,))  # Important to make sure that
-            # the shape comes from m1 and not m2, since the addition of the
-            # thermal mass correction could change the output shape (if, for
-            # example, T is an array and X is a single point).
-        massSq[...,0] = m1
-        massSq[...,1] = m2
-        dof = np.array([0.,0.])
+        # the shape comes from m1 and not m2, since the addition of the
+        # thermal mass correction could change the output shape (if, for
+        # example, T is an array and X is a single point).
+        massSq[..., 0] = m1
+        massSq[..., 1] = m2
+        dof = np.array([0.0, 0.0])
         c = np.array([0.5, 1.5])
         return massSq, dof, c
 
@@ -249,15 +252,15 @@ class generic_potential():
         # The following is an example placeholder which has the correct output
         # shape. Since dof is zero, it does not contribute to the potential.
         Nfermions = 2
-        phi1 = X[...,0]
-        #phi2 = X[...,1] # Comment out so that the placeholder doesn't
-                         # raise an exception for Ndim < 2.
-        m1 = .5 * phi1**2  # First fermion mass
-        m2 = .6 * phi1**2  # Second fermion mass
+        phi1 = X[..., 0]
+        # phi2 = X[...,1] # Comment out so that the placeholder doesn't
+        # raise an exception for Ndim < 2.
+        m1 = 0.5 * phi1**2  # First fermion mass
+        m2 = 0.6 * phi1**2  # Second fermion mass
         massSq = np.empty(m1.shape + (Nfermions,))
-        massSq[...,0] = m1
-        massSq[...,1] = m2
-        dof = np.array([0.,0.])
+        massSq[..., 0] = m1
+        massSq[..., 1] = m2
+        dof = np.array([0.0, 0.0])
         return massSq, dof
 
     def V1(self, X, T):
@@ -274,28 +277,45 @@ class generic_potential():
         bosons = self.boson_massSq(X, T)
         fermions = self.fermion_massSq(X)
         m2, n, c = bosons
-        y = np.sum(n*m2*m2 * (np.log(np.abs(m2/self.renormScaleSq) + 1e-100)
-                              - c), axis=-1)
+        y = np.sum(
+            n * m2 * m2 * (np.log(np.abs(m2 / self.renormScaleSq) + 1e-100) - c),
+            axis=-1,
+        )
         m2, n = fermions
         c = 1.5
-        y -= np.sum(n*m2*m2 * (np.log(np.abs(m2/self.renormScaleSq) + 1e-100)
-                               - c), axis=-1)
-        return y/(64.*np.pi*np.pi)
+        y -= np.sum(
+            n * m2 * m2 * (np.log(np.abs(m2 / self.renormScaleSq) + 1e-100) - c),
+            axis=-1,
+        )
+        return y / (64.0 * np.pi * np.pi)
 
     def counterterm(self, X):
-        '''
+        """
         Counterterms to eliminate impacts of VCW on physical vacuum.
-        '''
+        """
         X = np.asanyarray(X, dtype=float)
-        wphy = np.sqrt(2*(-2*self.l1*self.m22-self.lm*self.m12)/(4*self.l1*self.l2-self.lm**2))
-        vphy = [246., wphy]
-        phi1, phi2 = X[..., 0], X[...,1]
-        #vphy = np.asanyarray(vphy, dtype=float)
-        delta_lh = (self.gradVCW(vphy, T=0.)[0] - vphy[0]*self.d2VCW(vphy, T=0.)[0][0])/(2*vphy[0]**3)
-        delta_muh = 3*delta_lh*vphy[0]**2 + self.d2VCW(vphy, T=0.)[0][0]
-        delta_ls = (self.gradVCW(vphy, T=0.)[1] - vphy[1]*self.d2VCW(vphy, T=0.)[1][1])/(2*vphy[1]**3)
-        delta_mus = -(3*delta_ls*vphy[1]**2 + self.d2VCW(vphy, T=0.)[1][1])
-        return -0.5*delta_muh*phi1**2 + 0.25*delta_lh*phi1**4 + 0.5*delta_mus*phi2**2. +0.25*delta_ls*phi2**4
+        wphy = np.sqrt(
+            2
+            * (-2 * self.l1 * self.m22 - self.lm * self.m12)
+            / (4 * self.l1 * self.l2 - self.lm**2)
+        )
+        vphy = [246.0, wphy]
+        phi1, phi2 = X[..., 0], X[..., 1]
+        # vphy = np.asanyarray(vphy, dtype=float)
+        delta_lh = (
+            self.gradVCW(vphy, T=0.0)[0] - vphy[0] * self.d2VCW(vphy, T=0.0)[0][0]
+        ) / (2 * vphy[0] ** 3)
+        delta_muh = 3 * delta_lh * vphy[0] ** 2 + self.d2VCW(vphy, T=0.0)[0][0]
+        delta_ls = (
+            self.gradVCW(vphy, T=0.0)[1] - vphy[1] * self.d2VCW(vphy, T=0.0)[1][1]
+        ) / (2 * vphy[1] ** 3)
+        delta_mus = -(3 * delta_ls * vphy[1] ** 2 + self.d2VCW(vphy, T=0.0)[1][1])
+        return (
+            -0.5 * delta_muh * phi1**2
+            + 0.25 * delta_lh * phi1**4
+            + 0.5 * delta_mus * phi2**2.0
+            + 0.25 * delta_ls * phi2**4
+        )
 
     def V1T(self, bosons, fermions, T, include_radiation=False):
         """
@@ -321,23 +341,23 @@ class generic_potential():
             field-dependent contribution.
         """
         # This does not need to be overridden.
-        T2 = (T*T)[..., np.newaxis] + 1e-100
-             # the 1e-100 is to avoid divide by zero errors
-        T4 = T*T*T*T
+        T2 = (T * T)[..., np.newaxis] + 1e-100
+        # the 1e-100 is to avoid divide by zero errors
+        T4 = T * T * T * T
         m2, nb, c = bosons
-        y = np.sum(nb*Jb(m2/T2), axis=-1)
+        y = np.sum(nb * Jb(m2 / T2), axis=-1)
         m2, nf = fermions
-        y += np.sum(nf*Jf(m2/T2), axis=-1)
+        y += np.sum(nf * Jf(m2 / T2), axis=-1)
         if include_radiation:
-            #print("included")
+            # print("included")
             print(self.num_boson_dof)
             if self.num_boson_dof is not None:
                 nb = self.num_boson_dof - np.sum(nb)
-                y -= nb * np.pi**4 / 45.
+                y -= nb * np.pi**4 / 45.0
             if self.num_fermion_dof is not None:
                 nf = self.num_fermion_dof - np.sum(nf)
-                y -= nf * 7*np.pi**4 / 360.
-        return y*T4/(2*np.pi*np.pi)
+                y -= nf * 7 * np.pi**4 / 360.0
+        return y * T4 / (2 * np.pi * np.pi)
 
     def V1T_from_X(self, X, T, include_radiation=False):
         """
@@ -348,9 +368,9 @@ class generic_potential():
         """
         T = np.asanyarray(T, dtype=float)
         X = np.asanyarray(X, dtype=float)
-        bosons = self.boson_massSq(X,T)
+        bosons = self.boson_massSq(X, T)
         fermions = self.fermion_massSq(X)
-        y = self.V1T(bosons, fermions, T, include_radiation)       
+        y = self.V1T(bosons, fermions, T, include_radiation)
         return y
 
     def Vtot(self, X, T, include_radiation=False):
@@ -373,10 +393,10 @@ class generic_potential():
         """
         T = np.asanyarray(T, dtype=float)
         X = np.asanyarray(X, dtype=float)
-        #bosons = self.boson_massSq(X,T)
-        #fermions = self.fermion_massSq(X)
+        # bosons = self.boson_massSq(X,T)
+        # fermions = self.fermion_massSq(X)
         y = self.V0(X)
-        #y += self.V1(X, T) + self.counterterm(X)
+        # y += self.V1(X, T) + self.counterterm(X)
         y += self.V1T_from_X(X, T, include_radiation)
         return y
 
@@ -386,7 +406,7 @@ class generic_potential():
         such that V(0, T) = 0.
         """
         X0 = np.zeros(self.Ndim)
-        return self.Vtot(X,T,False) - self.Vtot(X0,T,False)
+        return self.Vtot(X, T, False) - self.Vtot(X0, T, False)
 
     def gradV(self, X, T):
         """
@@ -403,12 +423,13 @@ class generic_potential():
         except:
             # Create the gradient function
             self._gradV = helper_functions.gradientFunction(
-                self.Vtot, self.x_eps, self.Ndim, self.deriv_order)
+                self.Vtot, self.x_eps, self.Ndim, self.deriv_order
+            )
             f = self._gradV
         # Need to add extra axes to T since extra axes get added to X in
         # the helper function.
-        T = np.asanyarray(T)[...,np.newaxis,np.newaxis]
-        return f(X,T,False)
+        T = np.asanyarray(T)[..., np.newaxis, np.newaxis]
+        return f(X, T, False)
 
     def gradV0(self, X):
         """
@@ -425,35 +446,38 @@ class generic_potential():
         except:
             # Create the gradient function
             self._gradV0 = helper_functions.gradientFunction(
-                self.V0, self.x_eps, self.Ndim, self.deriv_order)
+                self.V0, self.x_eps, self.Ndim, self.deriv_order
+            )
             f = self._gradV0
         return f(X)
 
     def d2VCW(self, X, T):
-        '''
+        """
         Calculates the Hessian matrix for CW potential for counterterm calculation.
-        '''
+        """
         try:
             f = self._d2VCW
         except:
 
             self._d2VCW = helper_functions.hessianFunction(
-                self.V1, self.x_eps, self.Ndim, self.deriv_order)
+                self.V1, self.x_eps, self.Ndim, self.deriv_order
+            )
             f = self._d2VCW
-        T = np.asanyarray(T)[...,np.newaxis]
+        T = np.asanyarray(T)[..., np.newaxis]
         return f(X, T)
 
     def gradVCW(self, X, T):
-        '''
+        """
         Calculate the gradient of VCW for counterterm calculation.
-        '''
+        """
         try:
             f = self._gradVCW
         except:
             self._gradVCW = helper_functions.gradientFunction(
-                    self.V1, self.x_eps, self.Ndim, self.deriv_order)
+                self.V1, self.x_eps, self.Ndim, self.deriv_order
+            )
             f = self._gradVCW
-        T = np.asanyarray(T)[...,np.newaxis,np.newaxis]
+        T = np.asanyarray(T)[..., np.newaxis, np.newaxis]
         return f(X, T)
 
     def dgradV_dT(self, X, T):
@@ -469,21 +493,22 @@ class generic_potential():
         except:
             # Create the gradient function
             self._gradVT = helper_functions.gradientFunction(
-                self.V1T_from_X, self.x_eps, self.Ndim, self.deriv_order)
+                self.V1T_from_X, self.x_eps, self.Ndim, self.deriv_order
+            )
             gradVT = self._gradVT
         # Need to add extra axes to T since extra axes get added to X in
         # the helper function.
-        T = np.asanyarray(T)[...,np.newaxis,np.newaxis]
-        assert (self.deriv_order == 2 or self.deriv_order == 4)
+        T = np.asanyarray(T)[..., np.newaxis, np.newaxis]
+        assert self.deriv_order == 2 or self.deriv_order == 4
         if self.deriv_order == 2:
-            y = gradVT(X,T+T_eps,False) - gradVT(X,T-T_eps,False)
-            y *= 1./(2*T_eps)
+            y = gradVT(X, T + T_eps, False) - gradVT(X, T - T_eps, False)
+            y *= 1.0 / (2 * T_eps)
         else:
-            y = gradVT(X,T-2*T_eps,False)
-            y -= 8*gradVT(X,T-T_eps,False)
-            y += 8*gradVT(X,T+T_eps,False)
-            y -= gradVT(X,T+2*T_eps,False)
-            y *= 1./(12*T_eps)
+            y = gradVT(X, T - 2 * T_eps, False)
+            y -= 8 * gradVT(X, T - T_eps, False)
+            y += 8 * gradVT(X, T + T_eps, False)
+            y -= gradVT(X, T + 2 * T_eps, False)
+            y *= 1.0 / (12 * T_eps)
         return y
 
     def massSqMatrix(self, X):
@@ -504,10 +529,10 @@ class generic_potential():
         except:
             # Create the gradient function
             self._massSqMatrix = helper_functions.hessianFunction(
-                self.V0, self.x_eps, self.Ndim, self.deriv_order)
+                self.V0, self.x_eps, self.Ndim, self.deriv_order
+            )
             f = self._massSqMatrix
         return f(X)
-
 
     def d2V(self, X, T):
         """
@@ -525,42 +550,43 @@ class generic_potential():
         except:
             # Create the gradient function
             self._d2V = helper_functions.hessianFunction(
-                self.Vtot, self.x_eps, self.Ndim, self.deriv_order)
+                self.Vtot, self.x_eps, self.Ndim, self.deriv_order
+            )
             f = self._d2V
         # Need to add extra axes to T since extra axes get added to X in
         # the helper function.
-        T = np.asanyarray(T)[...,np.newaxis]
-        return f(X,T, False)
+        T = np.asanyarray(T)[..., np.newaxis]
+        return f(X, T, False)
 
-    def energyDensity(self,X,T,include_radiation=False):
+    def energyDensity(self, X, T, include_radiation=False):
         T_eps = self.T_eps
         if self.deriv_order == 2:
-            dVdT = self.V1T_from_X(X,T+T_eps, include_radiation)
-            dVdT -= self.V1T_from_X(X,T-T_eps, include_radiation)
-            dVdT *= 1./(2*T_eps)
+            dVdT = self.V1T_from_X(X, T + T_eps, include_radiation)
+            dVdT -= self.V1T_from_X(X, T - T_eps, include_radiation)
+            dVdT *= 1.0 / (2 * T_eps)
         else:
-            dVdT = self.V1T_from_X(X,T-2*T_eps, include_radiation)
-            dVdT -= 8*self.V1T_from_X(X,T-T_eps, include_radiation)
-            dVdT += 8*self.V1T_from_X(X,T+T_eps, include_radiation)
-            dVdT -= self.V1T_from_X(X,T+2*T_eps, include_radiation)
-            dVdT *= 1./(12*T_eps)
-        V = self.Vtot(X,T, include_radiation)
-        return V - T*dVdT
+            dVdT = self.V1T_from_X(X, T - 2 * T_eps, include_radiation)
+            dVdT -= 8 * self.V1T_from_X(X, T - T_eps, include_radiation)
+            dVdT += 8 * self.V1T_from_X(X, T + T_eps, include_radiation)
+            dVdT -= self.V1T_from_X(X, T + 2 * T_eps, include_radiation)
+            dVdT *= 1.0 / (12 * T_eps)
+        V = self.Vtot(X, T, include_radiation)
+        return V - T * dVdT
 
-    def epsilon(self,X,T,include_radiation=False):
+    def epsilon(self, X, T, include_radiation=False):
         T_eps = self.T_eps
         if self.deriv_order == 2:
-            dVdT = self.V1T_from_X(X,T+T_eps, include_radiation)
-            dVdT -= self.V1T_from_X(X,T-T_eps, include_radiation)
-            dVdT *= 1./(2*T_eps)
+            dVdT = self.V1T_from_X(X, T + T_eps, include_radiation)
+            dVdT -= self.V1T_from_X(X, T - T_eps, include_radiation)
+            dVdT *= 1.0 / (2 * T_eps)
         else:
-            dVdT = self.V1T_from_X(X,T-2*T_eps, include_radiation)
-            dVdT -= 8*self.V1T_from_X(X,T-T_eps, include_radiation)
-            dVdT += 8*self.V1T_from_X(X,T+T_eps, include_radiation)
-            dVdT -= self.V1T_from_X(X,T+2*T_eps, include_radiation)
-            dVdT *= 1./(12*T_eps)
-        V = self.Vtot(X,T, include_radiation)
-        return V - T*dVdT/4
+            dVdT = self.V1T_from_X(X, T - 2 * T_eps, include_radiation)
+            dVdT -= 8 * self.V1T_from_X(X, T - T_eps, include_radiation)
+            dVdT += 8 * self.V1T_from_X(X, T + T_eps, include_radiation)
+            dVdT -= self.V1T_from_X(X, T + 2 * T_eps, include_radiation)
+            dVdT *= 1.0 / (12 * T_eps)
+        V = self.Vtot(X, T, include_radiation)
+        return V - T * dVdT / 4
 
     # MINIMIZATION AND TRANSITION ANALYSIS --------------------------------
 
@@ -578,7 +604,7 @@ class generic_potential():
             A list of points of the approximate minima.
         """
         # This should be overridden.
-        return [np.ones(self.Ndim)*self.renormScaleSq**.5]
+        return [np.ones(self.Ndim) * self.renormScaleSq**0.5]
 
     def findMinimum(self, X=None, T=0.0):
         """
@@ -604,7 +630,7 @@ class generic_potential():
         is left as a convenience for subclasses.
         """
         X = self.findMinimum(np.zeros(self.Ndim), self.Tmax)
-        f = lambda T: min(np.linalg.eigvalsh(self.d2V(X,T)))
+        f = lambda T: min(np.linalg.eigvalsh(self.d2V(X, T)))
         if f(0.0) > 0:
             # barrier at T = 0
             T0 = 0.0
@@ -636,7 +662,7 @@ class generic_potential():
         """
         return False
 
-    def getPhases(self,vphy=np.array([246.,0.0]),tracingArgs={}):
+    def getPhases(self, vphy=np.array([246.0, 0.0]), tracingArgs={}):
         """
         Find different phases as functions of temperature
 
@@ -655,33 +681,40 @@ class generic_potential():
         """
         tstop = self.Tmax
         points = [[vphy, 0.0]]
-        #for x0 in self.approxZeroTMin():
-         #   points.append([x0,0.0])
+        # for x0 in self.approxZeroTMin():
+        #   points.append([x0,0.0])
         tracingArgs_ = dict(forbidCrit=self.forbidPhaseCrit)
         tracingArgs_.update(tracingArgs)
         phases = transitionFinder.traceMultiMin(
-            self.Vtot, self.dgradV_dT, self.d2V, points,
-            tLow=0.0, tHigh=tstop, deltaX_target=100*self.x_eps,
-            **tracingArgs_)
+            self.Vtot,
+            self.dgradV_dT,
+            self.d2V,
+            points,
+            tLow=0.0,
+            tHigh=tstop,
+            deltaX_target=100 * self.x_eps,
+            **tracingArgs_
+        )
         self.phases = phases
         transitionFinder.removeRedundantPhases(
-            self.Vtot, phases, self.x_eps*1e-2, self.x_eps*10)
-	# Find high-T phase and EW phase
-	V0 = 1e50
-	low_key = 0
-	for key, p in self.phases.items():
-	    if p.T[-1] >= tstop:
-		print ('High-T phase: %s' % p.key)
-	    # T[0] should be within dtstart from 0.0
-	    if p.T[0] <= 1.0:
-		xlow = p.X[0]	
-		if self.Vtot(xlow, p.T[0]) < V0:
-		    V0 = self.Vtot(xlow, p.T[0])
-		    low_key = p.key
-	print ('Zero-T phase: %s' % low_key)
+            self.Vtot, phases, self.x_eps * 1e-2, self.x_eps * 10
+        )
+        # Find high-T phase and EW phase
+        V0 = 1e50
+        low_key = 0
+        for key, p in self.phases.items():
+            if p.T[-1] >= tstop:
+                print("High-T phase: %s" % p.key)
+            # T[0] should be within dtstart from 0.0
+            if p.T[0] <= 1.0:
+                xlow = p.X[0]
+                if self.Vtot(xlow, p.T[0]) < V0:
+                    V0 = self.Vtot(xlow, p.T[0])
+                    low_key = p.key
+        print("Zero-T phase: %s" % low_key)
         return self.phases
 
-    def calcTcTrans(self, vphy=np.array([246., 0.0]), startHigh=False):
+    def calcTcTrans(self, vphy=np.array([246.0, 0.0]), startHigh=False):
         """
         Runs :func:`transitionFinder.findCriticalTemperatures`, storing the
         result in `self.TcTrans`.
@@ -700,18 +733,19 @@ class generic_potential():
         if self.phases is None:
             self.getPhases(vphy)
         self.TcTrans = transitionFinder.findCriticalTemperatures(
-            self.phases, self.Vtot, startHigh)
+            self.phases, self.Vtot, startHigh
+        )
         for trans in self.TcTrans:
-            T = trans['Tcrit']
-            xlow = trans['low_vev']
-            xhigh = trans['high_vev']
-            trans['rho+'] = self.energyDensity(xhigh,T)
-            trans['rho-'] = self.energyDensity(xlow,T)
-            trans['ep+'] = self.epsilon(xhigh,T)
-            trans['ep-'] = self.epsilon(xlow, T)
+            T = trans["Tcrit"]
+            xlow = trans["low_vev"]
+            xhigh = trans["high_vev"]
+            trans["rho+"] = self.energyDensity(xhigh, T)
+            trans["rho-"] = self.energyDensity(xlow, T)
+            trans["ep+"] = self.epsilon(xhigh, T)
+            trans["ep-"] = self.epsilon(xlow, T)
         return self.TcTrans
 
-    def findAllTransitions(self, vphy=np.array([246.,0.0]), tunnelFromPhase_args={}):
+    def findAllTransitions(self, vphy=np.array([246.0, 0.0]), tunnelFromPhase_args={}):
         """
         Find all phase transitions up to `self.Tmax`, storing the transitions
         in `self.TnTrans`.
@@ -741,58 +775,82 @@ class generic_potential():
         if self.phases is None:
             self.getPhases(vphy)
         self.TnTrans = transitionFinder.findAllTransitions(
-            self.phases, self.Vtot, self.gradV, tunnelFromPhase_args)
+            self.phases, self.Vtot, self.gradV, tunnelFromPhase_args
+        )
         # Add in the critical temperature
         if self.TcTrans is None:
             self.calcTcTrans(vphy)
         transitionFinder.addCritTempsForFullTransitions(
-            self.phases, self.TcTrans, self.TnTrans)
+            self.phases, self.TcTrans, self.TnTrans
+        )
         # Add in Delta_rho, Delta_p
         for trans in self.TnTrans:
-            T = trans['Tnuc']
-            xlow = trans['low_vev']
-            xhigh = trans['high_vev']
-            trans['rho+'] = self.energyDensity(xhigh,T) 
-            trans['rho-'] = self.energyDensity(xlow,T)
-            trans['p+'] = -self.Vtot(xhigh,T)
-            trans['p-'] = -self.Vtot(xlow,T)
-            trans['ep+'] = self.epsilon(xhigh,T)
-            trans['ep-'] = self.epsilon(xlow,T)
+            T = trans["Tnuc"]
+            xlow = trans["low_vev"]
+            xhigh = trans["high_vev"]
+            trans["rho+"] = self.energyDensity(xhigh, T)
+            trans["rho-"] = self.energyDensity(xlow, T)
+            trans["p+"] = -self.Vtot(xhigh, T)
+            trans["p-"] = -self.Vtot(xlow, T)
+            trans["ep+"] = self.epsilon(xhigh, T)
+            trans["ep-"] = self.epsilon(xlow, T)
         return self.TnTrans
 
     def prettyPrintTnTrans(self):
         if self.TnTrans is None:
-            raise RuntimeError("self.TnTrans has not been set. "
-                "Try running self.findAllTransitions() first.")
+            raise RuntimeError(
+                "self.TnTrans has not been set. "
+                "Try running self.findAllTransitions() first."
+            )
         if len(self.TnTrans) == 0:
             print("No transitions for this potential.\n")
         for trans in self.TnTrans:
-            trantype = trans['trantype']
+            trantype = trans["trantype"]
             if trantype == 1:
-                trantype = 'First'
+                trantype = "First"
             elif trantype == 2:
-                trantype = 'Second'
-            print("%s-order transition at Tnuc = %0.4g" %
-                  (trantype, trans['Tnuc']))
-            print("High-T phase:\n  key = %s; vev = %s" %
-                  (trans['high_phase'], trans['high_vev']))
-            print("Low-T phase:\n  key = %s; vev = %s" %
-                  (trans['low_phase'], trans['low_vev']))
-            print("Pressure unbroken phase = %0.5e broken phase = %0.5e" %
-                  (trans['p+'], trans['p-']))
-            print("Energy unbroken phase = %0.5e broken phase = %0.5e" %
-                  (trans['rho+'], trans['rho-']))
-            print("Epsilon unbroken phase = %0.5e broken phase = %0.5e" %
-                  (trans['ep+'], trans['ep-']))
-            print("Action = %0.5g" % trans['action'])
-            print("Action / Tnuc = %0.6g" % (trans['action']/trans['Tnuc']))
-            print("d(S/T)/dT at Tnuc = %0.6g" % (trans['dsdt']))
+                trantype = "Second"
+            print("%s-order transition at Tnuc = %0.4g" % (trantype, trans["Tnuc"]))
+            print(
+                "High-T phase:\n  key = %s; vev = %s"
+                % (trans["high_phase"], trans["high_vev"])
+            )
+            print(
+                "Low-T phase:\n  key = %s; vev = %s"
+                % (trans["low_phase"], trans["low_vev"])
+            )
+            print(
+                "Pressure unbroken phase = %0.5e broken phase = %0.5e"
+                % (trans["p+"], trans["p-"])
+            )
+            print(
+                "Energy unbroken phase = %0.5e broken phase = %0.5e"
+                % (trans["rho+"], trans["rho-"])
+            )
+            print(
+                "Epsilon unbroken phase = %0.5e broken phase = %0.5e"
+                % (trans["ep+"], trans["ep-"])
+            )
+            print("Action = %0.5g" % trans["action"])
+            print("Action / Tnuc = %0.6g" % (trans["action"] / trans["Tnuc"]))
+            print("d(S/T)/dT at Tnuc = %0.6g" % (trans["dsdt"]))
             print("")
 
     # PLOTTING ---------------------------------
 
-    def plot2d(self, box, T=0, treelevel=False, offset=0,
-               xaxis=0, yaxis=1, n=50, clevs=200, cfrac=.8, **contourParams):
+    def plot2d(
+        self,
+        box,
+        T=0,
+        treelevel=False,
+        offset=0,
+        xaxis=0,
+        yaxis=1,
+        n=50,
+        clevs=200,
+        cfrac=0.8,
+        **contourParams
+    ):
         """
         Makes a countour plot of the potential.
 
@@ -826,44 +884,46 @@ class generic_potential():
             Make documentation for the other plotting functions.
         """
         import matplotlib.pyplot as plt
-        xmin,xmax,ymin,ymax = box
-        X = np.linspace(xmin, xmax, n).reshape(n,1)*np.ones((1,n))
-        Y = np.linspace(ymin, ymax, n).reshape(1,n)*np.ones((n,1))
-        XY = np.zeros((n,n,self.Ndim))
-        XY[...,xaxis], XY[...,yaxis] = X,Y
+
+        xmin, xmax, ymin, ymax = box
+        X = np.linspace(xmin, xmax, n).reshape(n, 1) * np.ones((1, n))
+        Y = np.linspace(ymin, ymax, n).reshape(1, n) * np.ones((n, 1))
+        XY = np.zeros((n, n, self.Ndim))
+        XY[..., xaxis], XY[..., yaxis] = X, Y
         XY += offset
-        Z = self.V0(XY) if treelevel else self.Vtot(XY,T)
+        Z = self.V0(XY) if treelevel else self.Vtot(XY, T)
         minZ, maxZ = min(Z.ravel()), max(Z.ravel())
-        N = np.linspace(minZ, minZ+(maxZ-minZ)*cfrac, clevs)
-        plt.contour(X,Y,Z, N, **contourParams)
+        N = np.linspace(minZ, minZ + (maxZ - minZ) * cfrac, clevs)
+        plt.contour(X, Y, Z, N, **contourParams)
         plt.axis(box)
         plt.show()
 
-    def plot1d(self, x1, x2, T=0, treelevel=False, subtract=True, n=500,
-               **plotParams):
+    def plot1d(self, x1, x2, T=0, treelevel=False, subtract=True, n=500, **plotParams):
         import matplotlib.pyplot as plt
+
         if self.Ndim == 1:
-            x = np.linspace(x1,x2,n)
-            X = x[:,np.newaxis]
+            x = np.linspace(x1, x2, n)
+            X = x[:, np.newaxis]
         else:
-            dX = np.array(x2)-np.array(x1)
-            X = dX*np.linspace(0,1,n)[:,np.newaxis] + x1
-            x = np.linspace(0,1,n)*np.sum(dX**2)**.5
+            dX = np.array(x2) - np.array(x1)
+            X = dX * np.linspace(0, 1, n)[:, np.newaxis] + x1
+            x = np.linspace(0, 1, n) * np.sum(dX**2) ** 0.5
         if treelevel:
-            y = self.V0(X) - self.V0(X*0) if subtract else self.V0(X)
+            y = self.V0(X) - self.V0(X * 0) if subtract else self.V0(X)
         else:
-            y = self.DVtot(X,T) if subtract else self.Vtot(X, T)
-        plt.plot(x,y, **plotParams)
+            y = self.DVtot(X, T) if subtract else self.Vtot(X, T)
+        plt.plot(x, y, **plotParams)
         plt.xlabel(R"$\phi$")
         plt.ylabel(R"$V(\phi)$")
 
     def plotPhasesV(self, useDV=True, **plotArgs):
         import matplotlib.pyplot as plt
+
         if self.phases is None:
             self.getPhases()
         for key, p in self.phases.items():
-            V = self.DVtot(p.X,p.T) if useDV else self.Vtot(p.X,p.T)
-            plt.plot(p.T,V,**plotArgs)
+            V = self.DVtot(p.X, p.T) if useDV else self.Vtot(p.X, p.T)
+            plt.plot(p.T, V, **plotArgs)
         plt.xlabel(R"$T$")
         if useDV:
             plt.ylabel(R"$V[\phi_{min}(T), T] - V(0, T)$")
@@ -872,36 +932,39 @@ class generic_potential():
 
     def plotPhasesPhi(self, **plotArgs):
         import matplotlib.pyplot as plt
+
         if self.phases is None:
             self.getPhases()
         for key, p in self.phases.items():
-            phi_mag = np.sum(p.X**2, -1)**.5
+            phi_mag = np.sum(p.X**2, -1) ** 0.5
             plt.plot(p.T, phi_mag, **plotArgs)
         plt.xlabel(R"$T$")
         plt.ylabel(R"$\phi(T)$")
 
     # Tong: Add dS/dT for GW calculation
     def dSdT(self):
-	if self.TnTrans is None:
-            raise RuntimeError("self.TnTrans has not been set. "
-                "Try running self.findAllTransitions() first.")
+        if self.TnTrans is None:
+            raise RuntimeError(
+                "self.TnTrans has not been set. "
+                "Try running self.findAllTransitions() first."
+            )
         if len(self.TnTrans) == 0:
             print("No transitions for this potential.\n")
-	for trans in self.TnTrans:
-	    try:
-	        Tnuc = trans['Tnuc']
-	        xlow = trans['low_vev']
-	        xhigh = trans['high_vev']
-	        dsdt = transitionFinder.dSdT(self.Vtot, self.gradV, xlow, xhigh, Tnuc)
-	        trans['dsdt'] = dsdt
-	    except:
-		trans['dsdt'] = 1e100
-    
+        for trans in self.TnTrans:
+            try:
+                Tnuc = trans['Tnuc']
+                xlow = trans['low_vev']
+                xhigh = trans['high_vev']
+                dsdt = transitionFinder.dSdT(self.Vtot, self.gradV, xlow, xhigh, Tnuc)
+                trans['dsdt'] = dsdt
+            except:
+                trans['dsdt'] = 1e100
 
 # END GENERIC_POTENTIAL CLASS ------------------
 
 
 # FUNCTIONS ON LISTS OF MODEL INSTANCES ---------------
+
 
 def funcOnModels(f, models):
     """
@@ -916,7 +979,7 @@ def funcOnModels(f, models):
     """
     M = []
     for a in models:
-        if isinstance(a,list) or isinstance(a,tuple):
+        if isinstance(a, list) or isinstance(a, tuple):
             M.append(funcOnModels(f, a))
         else:
             try:
@@ -940,51 +1003,60 @@ def _linkTransitions(models, critTrans=True):
         allTrans.append(model.TcTrans if critTrans else model.TnTrans)
     # allTrans is now a list of lists of transitions.
     # We want to rearrange each sublist so that it matches the previous sublist.
-    for j in xrange(len(allTrans)-1):
-        trans1, trans2 = allTrans[j], allTrans[j+1]
-        if trans1 is None: trans1 = []
-        if trans2 is None: trans2 = []
+    for j in xrange(len(allTrans) - 1):
+        trans1, trans2 = allTrans[j], allTrans[j + 1]
+        if trans1 is None:
+            trans1 = []
+        if trans2 is None:
+            trans2 = []
         # First, clear the transiction dictionaries of link information
-        for t in trans1+trans2:
+        for t in trans1 + trans2:
             if t is not None:
-                t['link'] = None
-                t['diff'] = np.inf
+                t["link"] = None
+                t["diff"] = np.inf
         for i1 in xrange(len(trans1)):
             t1 = trans1[i1]  # t1 and t2 are individual transition dictionaries
-            if t1 is None: continue
+            if t1 is None:
+                continue
             for i2 in xrange(len(trans2)):
                 t2 = trans2[i2]
-                if t2 is None: continue
+                if t2 is None:
+                    continue
                 # See if t1 and t2 are each other's closest match
-                diff = np.sum((t1['low vev']-t2['low vev'])**2)**.5 \
-                    + np.sum((t1['high vev']-t2['high vev'])**2)**.5
-                if diff < t1['diff'] and diff < t2['diff']:
-                    t1['diff'] = t2['diff'] = diff
-                    t1['link'], t2['link'] = i2, i1
+                diff = (
+                    np.sum((t1["low vev"] - t2["low vev"]) ** 2) ** 0.5
+                    + np.sum((t1["high vev"] - t2["high vev"]) ** 2) ** 0.5
+                )
+                if diff < t1["diff"] and diff < t2["diff"]:
+                    t1["diff"] = t2["diff"] = diff
+                    t1["link"], t2["link"] = i2, i1
         for i2 in xrange(len(trans2)):
             t2 = trans2[i2]
-            if (t2 is not None and t2['link'] is not None and
-                    trans1[t2['link']]['link'] != i2):
-                t2['link'] = None  # doesn't link back.
+            if (
+                t2 is not None
+                and t2["link"] is not None
+                and trans1[t2["link"]]["link"] != i2
+            ):
+                t2["link"] = None  # doesn't link back.
         # Now each transition in tran2 is linked to its closest match in tran1,
         # or None if it has no match
-        newTrans = [None]*len(trans1)
+        newTrans = [None] * len(trans1)
         for t2 in trans2:
             if t2 is None:
                 continue
-            elif t2['link'] is None:
+            elif t2["link"] is None:
                 # This transition doesn't match up with anything.
                 newTrans.append(t2)
             else:
-                newTrans[t2['link']] = t2
-        allTrans[j+1] = newTrans
+                newTrans[t2["link"]] = t2
+        allTrans[j + 1] = newTrans
     # Almost done. Just need to clean up the transitions and make sure that
     # the allTrans list is rectangular.
     for trans in allTrans:
         for t in trans:
             if t is not None:
-                del t['link']
-                del t['diff']
+                del t["link"]
+                del t["diff"]
     n = len(allTrans[-1])
     for trans in allTrans:
         while len(trans) < n:
