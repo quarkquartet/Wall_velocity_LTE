@@ -18,10 +18,10 @@ The higgs mass and vev are set default as 125GeV and 246Gev
 Bare parameters entering the tree level potential can be called by the method model().info()
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-#from cosmoTransitions import generic_potential
+# from cosmoTransitions import generic_potential
 import generic_potential_daisy as generic_potential
+import matplotlib.pyplot as plt
+import numpy as np
 
 """        
         self.Y1 = 2*80.4/246
@@ -39,102 +39,141 @@ Adding two usage functions under the class 'model':
         such a plot shows the phase trajectary as T changes.
 """
 
-class model(generic_potential.generic_potential):
 
+class model(generic_potential.generic_potential):
     def init(self, m12, m22, l1, l2, lm, v2re):
-        
+
         self.m12 = m12
         self.m22 = m22
         self.l1 = l1
         self.l2 = l2
-        self.lm = lm  
-                
-        
+        self.lm = lm
+
         self.Ndim = 2
-        
+
         self.renormScaleSq = v2re
 
-        self.Y1 = 2*80.4/246
-        self.Y2 = 2*(91.2**2 - 80.4**2)**0.5/246
-        self.Yt = 2**0.5*172.4/246 #just curious about 1/6
+        self.Y1 = 2 * 80.4 / 246
+        self.Y2 = 2 * (91.2**2 - 80.4**2) ** 0.5 / 246
+        self.Yt = 2**0.5 * 172.4 / 246  # just curious about 1/6
 
         self.nwt = 4
         self.nzt = 2
-        
+
         self.nwl = 2
         self.nzl = 1
-        
+
         self.nx = 3
-        
+
         self.nt = 12
 
-
     def test(self):
-        print "hi:", self.lm
+        print("hi:", self.lm)
 
-            
     def V0(self, X):
         X = np.asanyarray(X)
-        phi1,phi2 = X[...,0], X[...,1]
-        #Tong: phi1->h, phi2->S
-        r = -0.5*self.m12*phi1**2 + 0.25*self.l1*phi1**4 + 0.5*self.m22*phi2**2 + 0.25*self.l2*phi2**4
-        r += 0.25*self.lm*phi1**2*phi2**2
+        phi1, phi2 = X[..., 0], X[..., 1]
+        # Tong: phi1->h, phi2->S
+        r = (
+            -0.5 * self.m12 * phi1**2
+            + 0.25 * self.l1 * phi1**4
+            + 0.5 * self.m22 * phi2**2
+            + 0.25 * self.l2 * phi2**4
+        )
+        r += 0.25 * self.lm * phi1**2 * phi2**2
         return r
-  
-    
+
     def boson_massSq(self, X, T):
         X = np.asanyarray(X)
-        phi1,phi2 = X[...,0], X[...,1]
-        
-        ringh = (3.*self.Y1**2./16. + self.Y2**2./16. + self.l1/2 + self.Yt**2./4. + self.lm/12.)*T**2.*phi1**0.
-        rings = (self.l2/4. + self.lm/3.)*T**2.*phi1**0.
-        ringwl = 11.*self.Y1**2.*T**2.*phi1**0./6.
-        ringbl = 11.*self.Y2**2.*T**2.*phi1**0./6.
-        ringchi = (3.*self.Y1**2./16. + self.Y2**2./16. + self.l1/2. + self.Yt**2./4. + self.lm/12.)*T**2.*phi1**0.
+        phi1, phi2 = X[..., 0], X[..., 1]
 
-        a = -self.m12 + 3.*self.l1*phi1**2. + 0.5*self.lm*phi2**2. + ringh
-        b = self.m22 + 3.*self.l2*phi2**2. + 0.5*self.lm*phi1**2. + rings
-        c = self.lm*phi1*phi2
-        A = .5*(a+b)
-        B = np.sqrt(.25*(a-b)**2. + c**2.)
-        
-        mwl = 0.25*self.Y1**2.*phi1**2. + ringwl
-        mwt = 0.25*self.Y1**2.*phi1**2.
-        
-        mzgla = 0.25*self.Y1**2.*phi1**2. + ringwl
-        mzglb = 0.25*self.Y2**2.*phi1**2. + ringbl
-        mzgc = - 0.25*self.Y1*self.Y2*phi1**2.
-        mzglA = .5*(mzgla + mzglb)
-        mzglB = np.sqrt(.25*(mzgla-mzglb)**2. + mzgc**2.)
-        
-        mzgta = 0.25*self.Y1**2.*phi1**2.
-        mzgtb = 0.25*self.Y2**2.*phi1**2.
-        mzgtA = .5*(mzgta + mzgtb)
-        mzgtB = np.sqrt(.25*(mzgta-mzgtb)**2. + mzgc**2.)
-        
+        ringh = (
+            (
+                3.0 * self.Y1**2.0 / 16.0
+                + self.Y2**2.0 / 16.0
+                + self.l1 / 2
+                + self.Yt**2.0 / 4.0
+                + self.lm / 12.0
+            )
+            * T**2.0
+            * phi1**0.0
+        )
+        rings = (self.l2 / 4.0 + self.lm / 3.0) * T**2.0 * phi1**0.0
+        ringwl = 11.0 * self.Y1**2.0 * T**2.0 * phi1**0.0 / 6.0
+        ringbl = 11.0 * self.Y2**2.0 * T**2.0 * phi1**0.0 / 6.0
+        ringchi = (
+            (
+                3.0 * self.Y1**2.0 / 16.0
+                + self.Y2**2.0 / 16.0
+                + self.l1 / 2.0
+                + self.Yt**2.0 / 4.0
+                + self.lm / 12.0
+            )
+            * T**2.0
+            * phi1**0.0
+        )
+
+        a = (
+            -self.m12
+            + 3.0 * self.l1 * phi1**2.0
+            + 0.5 * self.lm * phi2**2.0
+            + ringh
+        )
+        b = self.m22 + 3.0 * self.l2 * phi2**2.0 + 0.5 * self.lm * phi1**2.0 + rings
+        c = self.lm * phi1 * phi2
+        A = 0.5 * (a + b)
+        B = np.sqrt(0.25 * (a - b) ** 2.0 + c**2.0)
+
+        mwl = 0.25 * self.Y1**2.0 * phi1**2.0 + ringwl
+        mwt = 0.25 * self.Y1**2.0 * phi1**2.0
+
+        mzgla = 0.25 * self.Y1**2.0 * phi1**2.0 + ringwl
+        mzglb = 0.25 * self.Y2**2.0 * phi1**2.0 + ringbl
+        mzgc = -0.25 * self.Y1 * self.Y2 * phi1**2.0
+        mzglA = 0.5 * (mzgla + mzglb)
+        mzglB = np.sqrt(0.25 * (mzgla - mzglb) ** 2.0 + mzgc**2.0)
+
+        mzgta = 0.25 * self.Y1**2.0 * phi1**2.0
+        mzgtb = 0.25 * self.Y2**2.0 * phi1**2.0
+        mzgtA = 0.5 * (mzgta + mzgtb)
+        mzgtB = np.sqrt(0.25 * (mzgta - mzgtb) ** 2.0 + mzgc**2.0)
+
         mzl = mzglA + mzglB
         mzt = mzgtA + mzgtB
         mgl = mzglA - mzglB
         mgt = mzgtA - mzgtB
-        
-        mx = -self.m12 + self.l1*phi1**2. + 0.5*self.lm*phi2**2. + ringchi
- 
-        M = np.array([A+B, A-B, mwl, mwt, mzl, mzt, mgl, mgt, mx])
+
+        mx = -self.m12 + self.l1 * phi1**2.0 + 0.5 * self.lm * phi2**2.0 + ringchi
+
+        M = np.array([A + B, A - B, mwl, mwt, mzl, mzt, mgl, mgt, mx])
 
         M = np.rollaxis(M, 0, len(M.shape))
 
-        dof = np.array([1, 1, self.nwl, self.nwt, self.nzl, self.nzt, self.nzl, self.nzt, self.nx])
+        dof = np.array(
+            [1, 1, self.nwl, self.nwt, self.nzl, self.nzt, self.nzl, self.nzt, self.nx]
+        )
 
-        c = np.array([1.5, 1.5, 5./6., 5./6., 5./6., 5./6., 5./6., 5./6., 1.5])#check Goldstones
-               
+        c = np.array(
+            [
+                1.5,
+                1.5,
+                5.0 / 6.0,
+                5.0 / 6.0,
+                5.0 / 6.0,
+                5.0 / 6.0,
+                5.0 / 6.0,
+                5.0 / 6.0,
+                1.5,
+            ]
+        )  # check Goldstones
+
         return M, dof, c
-        
- 
+
     def fermion_massSq(self, X):
         X = np.asanyarray(X)
-        phi1 = X[...,0]
+        phi1 = X[..., 0]
 
-        mt = 0.5*self.Yt**2.*phi1**2.
+        mt = 0.5 * self.Yt**2.0 * phi1**2.0
         M = np.array([mt])
 
         M = np.rollaxis(M, 0, len(M.shape))
@@ -143,65 +182,68 @@ class model(generic_potential.generic_potential):
 
         return M, dof
 
-
     def approxZeroTMin(self):
         # There are generically two minima at zero temperature in this model,
         # and we want to include both of them.
-        return [np.array([246., 100.])]
-
+        return [np.array([246.0, 100.0])]
 
     def forbidPhaseCrit(self, X):
         """
         forbid negative phases for both h and s
         """
-        return any([np.array([X])[...,0] < -5.0, np.array([X])[...,1] < -5.0])
- 
-    
+        return any([np.array([X])[..., 0] < -5.0, np.array([X])[..., 1] < -5.0])
+
     def V0s0(self, phi):
-        r =  -0.5*self.m12*phi**2 + 0.25*self.l1*phi**4
+        r = -0.5 * self.m12 * phi**2 + 0.25 * self.l1 * phi**4
         return r
 
-       
     def info(self):
-        print 'Bare parameters:'
-        print 'mu1^2=',self.m12,',','mu2^2=',self.m22
-        print 'lambh=',self.l1,',','lambs=',self.l2,',','lambm=',self.lm
-        print 'physical parameters:'
-        print 'ms=',self.ms,',', 'tanb=',self.tanb,',','sint=',self.sint
+        print("Bare parameters:")
+        print("mu1^2=", self.m12, ",", "mu2^2=", self.m22)
+        print("lambh=", self.l1, ",", "lambs=", self.l2, ",", "lambm=", self.lm)
+        print("physical parameters:")
+        print("ms=", self.ms, ",", "tanb=", self.tanb, ",", "sint=", self.sint)
 
-        
     def prettyPrintTcTrans(self):
         if self.TcTrans is None:
-            raise RuntimeError("self.TcTrans has not been set. "
-                "Try running self.calcTcTrans() first.")
+            raise RuntimeError(
+                "self.TcTrans has not been set. "
+                "Try running self.calcTcTrans() first."
+            )
         if len(self.TcTrans) == 0:
             print("No transitions for this potential.\n")
         for trans in self.TcTrans:
-            trantype = trans['trantype']
+            trantype = trans["trantype"]
             if trantype == 1:
-                trantype = 'First'
+                trantype = "First"
             elif trantype == 2:
-                trantype = 'Second'
-            print("%s-order transition at Tc = %0.4g" %
-                  (trantype, trans['Tcrit']))
-            print("High-T phase:\n  key = %s; vev = %s" %
-                  (trans['high_phase'], trans['high_vev']))
-            print("Low-T phase:\n  key = %s; vev = %s" %
-                  (trans['low_phase'], trans['low_vev']))
-            print("Energy difference = %0.4g = (%0.4g)^4" %
-                  (trans['Delta_rho'], trans['Delta_rho']**.25))
+                trantype = "Second"
+            print("%s-order transition at Tc = %0.4g" % (trantype, trans["Tcrit"]))
+            print(
+                "High-T phase:\n  key = %s; vev = %s"
+                % (trans["high_phase"], trans["high_vev"])
+            )
+            print(
+                "Low-T phase:\n  key = %s; vev = %s"
+                % (trans["low_phase"], trans["low_vev"])
+            )
+            print(
+                "Energy difference = %0.4g = (%0.4g)^4"
+                % (trans["Delta_rho"], trans["Delta_rho"] ** 0.25)
+            )
             print("")
 
- 
     def plotPhases2D(self, **plotArgs):
         import matplotlib.pyplot as plt
+
         if self.phases is None:
             self.getPhases()
         for key, p in self.phases.items():
-            plt.plot(p.X[...,1], p.X[...,0], **plotArgs)
+            plt.plot(p.X[..., 1], p.X[..., 0], **plotArgs)
         plt.xlabel(R"$v_s(T)$")
         plt.ylabel(R"$v_h(T)$")
-    
+
+
 """
 Here defines some useful functions to visualize the tree level potential
 
@@ -213,58 +255,66 @@ vsh(m, box, T) is used to show the 1-loop effective V-hs plot at temperature T.
             box = (xmin, xmax, ymin, ymax) to set the range of the plot
             T: temperature of the potential
 """
-def v0h(m,tanb):
-    plt.plot(np.arange(-300, 300, 2),m.V0([np.arange(-300, 300, 2),246*tanb]))
+
+
+def v0h(m, tanb):
+    plt.plot(np.arange(-300, 300, 2), m.V0([np.arange(-300, 300, 2), 246 * tanb]))
+
 
 def vh(m, box, s, T, n=50):
     xmin, xmax = box
     X = np.linspace(xmin, xmax, n)
     Y = np.linspace(s, s, n)
     XY = np.zeros((n, 2))
-    XY[...,0], XY[...,1] = X, Y    
+    XY[..., 0], XY[..., 1] = X, Y
     plt.plot(X, m.Vtot(XY, T))
     plt.show()
- 
+
+
 def vs(m, box, T, n=50):
     xmin, xmax = box
     X = np.linspace(xmin, xmax, n)
     Y = np.linspace(0, 0, n)
     XY = np.zeros((n, 2))
-    XY[...,0], XY[...,1] = Y, X    
+    XY[..., 0], XY[..., 1] = Y, X
     plt.plot(X, m.Vtot(XY, T))
     plt.show()
-    
+
+
 def vh1T(m, box, s, T, n=50):
     xmin, xmax = box
     X = np.linspace(xmin, xmax, n)
     Y = np.linspace(s, s, n)
     XY = np.zeros((n, 2))
-    XY[...,0], XY[...,1] = X, Y    
+    XY[..., 0], XY[..., 1] = X, Y
     plt.plot(X, m.V1T_from_X(XY, T))
     plt.show()
+
 
 def vs1T(m, box, T, n=50):
     xmin, xmax = box
     X = np.linspace(xmin, xmax, n)
     Y = np.linspace(0, 0, n)
     XY = np.zeros((n, 2))
-    XY[...,1], XY[...,0] = X, Y    
+    XY[..., 1], XY[..., 0] = X, Y
     plt.plot(X, m.V1T_from_X(XY, T))
     plt.show()
-             
+
+
 """
 make use of the Vtot method in generic_potential
 """
 
-def vsh(m, box, T, n=50, clevs=200, cfrac=.8, **contourParams):
-    xmin,xmax,ymin,ymax = box
-    X = np.linspace(xmin, xmax, n).reshape(n,1)*np.ones((1,n))
-    Y = np.linspace(ymin, ymax, n).reshape(1,n)*np.ones((n,1))
+
+def vsh(m, box, T, n=50, clevs=200, cfrac=0.8, **contourParams):
+    xmin, xmax, ymin, ymax = box
+    X = np.linspace(xmin, xmax, n).reshape(n, 1) * np.ones((1, n))
+    Y = np.linspace(ymin, ymax, n).reshape(1, n) * np.ones((n, 1))
     XY = np.zeros((n, n, 2))
-    XY[...,0], XY[...,1] = X, Y
+    XY[..., 0], XY[..., 1] = X, Y
     Z = m.Vtot(XY, T)
     minZ, maxZ = min(Z.ravel()), max(Z.ravel())
-    N = np.linspace(minZ, minZ+(maxZ-minZ)*cfrac, clevs)
-    plt.contour(X,Y,Z, N, **contourParams)
+    N = np.linspace(minZ, minZ + (maxZ - minZ) * cfrac, clevs)
+    plt.contour(X, Y, Z, N, **contourParams)
     plt.axis(box)
     plt.show()

@@ -18,10 +18,10 @@ The higgs mass and vev are set default as 125GeV and 246Gev
 Bare parameters entering the tree level potential can be called by the method model().info()
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
 #from cosmoTransitions import generic_potential
 import generic_potential_d as generic_potential
+import matplotlib.pyplot as plt
+import numpy as np
 
 """        
         self.Y1 = 2*80.4/246
@@ -70,7 +70,7 @@ class model(generic_potential.generic_potential):
 
 
     def test(self):
-        print "hi:", self.lm
+        print ("hi:", self.lm)
 
             
     def V0(self, X):
@@ -163,11 +163,11 @@ class model(generic_potential.generic_potential):
 
        
     def info(self):
-        print 'Bare parameters:'
-        print 'mu1^2=',self.m12,',','mu2^2=',self.m22
-        print 'lambh=',self.l1,',','lambs=',self.l2,',','lambm=',self.lm
-        print 'physical parameters:'
-        print 'ms=',self.ms,',', 'tanb=',self.tanb,',','sint=',self.sint
+        print ('Bare parameters:')
+        print ('mu1^2=',self.m12,',','mu2^2=',self.m22)
+        print ('lambh=',self.l1,',','lambs=',self.l2,',','lambm=',self.lm)
+        print ('physical parameters:')
+        print ('ms=',self.ms,',', 'tanb=',self.tanb,',','sint=',self.sint)
 
         
     def prettyPrintTcTrans(self):
