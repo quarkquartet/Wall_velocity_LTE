@@ -11,7 +11,7 @@ This includes:
 import numpy as np
 from scipy import integrate, interpolate, optimize
 
-from helperFunctions import a, alpha_p, cs_sq, dYdtau, epsilon, r_func, μ
+from helperFunctions import a, alpha_p, cs_sq, dYdtau, dvTdxi, epsilon, r_func, μ
 
 
 class boundary:
@@ -72,30 +72,46 @@ class boundary:
         Tp = guess_sol[1]
         vp = guess_sol[0]
 
-        profile_sol = integrate.solve_ivp(
-            dYdtau,
-            (10, 0.01),
-            np.array([μ(self.vw, vp), Tp, self.vw]),
-            t_eval=np.linspace(10, 0.01, 1000),
-            method="DOP853",
-            args=(self.V, self.hv),
-        )  # Solve the differential equations of v, T and xi.
-        vsol = profile_sol.y[0]
-        Tsol = profile_sol.y[1]
-        xisol = profile_sol.y[2]
-        xi_max = xisol.max()
-        xi_max_index = xisol.argmax()
-        v_prof = interpolate.interp1d(
-            xisol[0 : xi_max_index + 1], vsol[0 : xi_max_index + 1]
-        )
-        T_prof = interpolate.interp1d(
-            xisol[0 : xi_max_index + 1], Tsol[0 : xi_max_index + 1]
-        )
-        xsh = optimize.brentq(
-            lambda x: μ(x, v_prof(x)) * x - cs_sq(self.V, T_prof(x), self.hv),
-            xisol[0],
-            xi_max * 0.9999,
-        )
+        try:
+            profile_sol = integrate.solve_ivp(
+                dYdtau,
+                (10, 0.01),
+                np.array([μ(self.vw, vp), Tp, self.vw]),
+                t_eval=np.linspace(10, 0.01, 1000),
+                method="DOP853",
+                args=(self.V, self.hv),
+            )  # Solve the differential equations of v, T and xi.
+            vsol = profile_sol.y[0]
+            Tsol = profile_sol.y[1]
+            xisol = profile_sol.y[2]
+            xi_max = xisol.max()
+            xi_max_index = xisol.argmax()
+            v_prof = interpolate.interp1d(
+                xisol[0 : xi_max_index + 1], vsol[0 : xi_max_index + 1]
+            )
+            T_prof = interpolate.interp1d(
+                xisol[0 : xi_max_index + 1], Tsol[0 : xi_max_index + 1]
+            )
+            xsh = optimize.brentq(
+                lambda x: μ(x, v_prof(x)) * x - cs_sq(self.V, T_prof(x), self.hv),
+                xisol[0],
+                xi_max * 0.9999,
+            )
+        except:
+            profile_sol = integrate.solve_ivp(
+                dvTdxi,
+                (self.vw, 1),
+                np.array([μ(self.vw, vp), Tp]),
+                t_eval = np.linspace(self.vw, 1, 500),
+                method = 'DOP853',
+                args=(self.V, self.hv),
+            )
+            xisol = profile_sol.t
+            vsol = profile_sol.y[0]
+            Tsol = profile_sol.y[1]
+            v_prof = interpolate.interp1d(xisol, vsol, kind='cubic')
+            T_prof = interpolate.interp1d(xisol, Tsol, kind='cubic')
+            xsh = optimize.brentq(lambda x: μ(x, v_prof(x))*x - cs_sq(self.V, T_prof(x), self.hv), self.vw, 1)
         return T_prof(xsh)
 
     def solve_deflagration(self):

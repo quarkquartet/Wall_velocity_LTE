@@ -36,6 +36,13 @@ def epsilon(V, T, vev):
     return -0.25 * T * derivative(VT, T) + VT(T)
 
 
+def w(V, T, vev):
+    def VT(T):
+        return V(vev, T)
+
+    return -T * derivative(VT, T)
+
+
 def a(V, T, vev):
     """The parameter a, means the effective dofs."""
 
@@ -61,6 +68,10 @@ def vJ(alphap):
     return v
 
 
+def μ(x, v):
+    return (x - v) / (1 - x * v)
+
+
 def dYdtau(tau, y, *args):
     """Y: (v, xi, T)"""
     v = y[0]
@@ -77,5 +88,12 @@ def dYdtau(tau, y, *args):
     return np.array([dvdtau, dTdtau, dxidtau])
 
 
-def μ(x, v):
-    return (x - v) / (1 - x * v)
+def dvTdxi(xi, y, *args):
+    v = y[0]
+    T = y[1]
+    V = args[0]
+    vev = args[1]
+    dvdxi = 2 * v / xi * (1 - v**2)
+    dvdxi = dvdxi / (1 - v * xi) / (μ(xi, v) ** 2 / cs_sq(V, T, vev) - 1)
+    dTdxi = T * μ(xi, v) * dvdxi / (1 - v**2)
+    return np.array([dvdxi, dTdxi])
