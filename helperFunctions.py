@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import optimize
 
 
 def derivative(f, x, eps=1e-5, order=1):
@@ -20,34 +21,39 @@ def derivative(f, x, eps=1e-5, order=1):
 
 def cs_sq(V, T, vev):
     """Sound speed square."""
+    v = optimize.fmin(V, vev, args=(T,), disp=0)
 
     def VT(T):
-        return V(vev, T)
+        return V(v, T)
 
     return derivative(VT, T, order=1) / (T * derivative(VT, T, order=2))
 
 
 def epsilon(V, T, vev):
     """Epsilon."""
+    v = optimize.fmin(V, vev, args=(T,), disp=0)
 
     def VT(T):
-        return V(vev, T)
+        return V(v, T)
 
     return -0.25 * T * derivative(VT, T) + VT(T)
 
 
 def w(V, T, vev):
+    v = optimize.fmin(V, vev, args=(T,), disp=0)
+
     def VT(T):
-        return V(vev, T)
+        return V(v, T)
 
     return -T * derivative(VT, T)
 
 
 def a(V, T, vev):
     """The parameter a, means the effective dofs."""
+    v = optimize.fmin(V, vev, args=(T,), disp=0)
 
     def VT(T):
-        return V(vev, T)
+        return V(v, T)
 
     return -0.75 * derivative(VT, T) / T**3
 
