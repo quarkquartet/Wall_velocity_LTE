@@ -40,10 +40,8 @@ def epsilon(V, T, vev):
 
 
 def w(V, T, vev):
-    v = optimize.fmin(V, vev, args=(T,), disp=0)
-
     def VT(T):
-        return V(v, T)
+        return V(vev, T)
 
     return -T * derivative(VT, T)
 
