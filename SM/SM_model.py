@@ -14,11 +14,10 @@ phase transition can be achieved.
 import numpy as np
 from cosmoTransitions import generic_potential as gp
 from cosmoTransitions import tunneling1D as td
-from matplotlib import pyplot as plt
-from scipy import interpolate, optimize
-
 from finiteT import Jb_spline as Jb
 from finiteT import Jf_spline as Jf
+from matplotlib import pyplot as plt
+from scipy import interpolate, optimize
 
 v = 246.22
 mt = 120.0
@@ -99,23 +98,13 @@ class SM(gp.generic_potential):
         mgs = (
             self.λ * h**2
             - self.λ * v**2
-            + (
-                3 * self.g2**2 / 16
-                + self.g1**2 / 16
-                + 0.5 * self.λ
-                + 0.25 * self.yt**2
-            )
+            + (3 * self.g2**2 / 16 + self.g1**2 / 16 + 0.5 * self.λ + 0.25 * self.yt**2)
             * T2
         )  # Goldstone modes
         mhsq = (
             3 * self.λ * h**2
             - self.λ * v**2
-            + (
-                3 * self.g2**2 / 16
-                + self.g1**2 / 16
-                + 0.5 * self.λ
-                + 0.25 * self.yt**2
-            )
+            + (3 * self.g2**2 / 16 + self.g1**2 / 16 + 0.5 * self.λ + 0.25 * self.yt**2)
             * T2
         )  # Higgs
 
@@ -224,6 +213,7 @@ class SM(gp.generic_potential):
         Vtot = self.V0(X)
         Vtot += self.V1(bosons, fermions)
         Vtot += self.V1T(bosons, fermions, T, include_radiation)
+        Vtot += np.pi**2 * 83.25 * T**4 / 30
 
         return Vtot
 
