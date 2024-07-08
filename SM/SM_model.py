@@ -213,7 +213,7 @@ class SM(gp.generic_potential):
         Vtot = self.V0(X)
         Vtot += self.V1(bosons, fermions)
         Vtot += self.V1T(bosons, fermions, T, include_radiation)
-        Vtot += np.pi**2 * 83.25 * T**4 / 30
+        Vtot -= np.pi**2 * 83.25 * T**4 / 30
 
         return Vtot
 
