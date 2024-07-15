@@ -66,6 +66,22 @@ def r_func(V, Tp, Tm, high_vev, low_vev):
     return a(V, Tp, high_vev) * Tp**4 / (a(V, Tm, low_vev) * Tm**4)
 
 
+def p(V, T, vev):
+    v = optimize.fmin(V, vev, args=(T,), disp=0)
+    return -V(v, T)
+
+def e(V, T, vev):
+    v = optimize.fmin(V, vev, args=(T,), disp=0)
+    def VT(T):
+        return V(v, T)
+    return - T * derivative(VT, T) + VT(T)
+
+def ω(V, T, vev):
+    v = optimize.fmin(V, vev, args=(T,), disp=0)
+    def VT(T):
+        return V(v, T)
+    return - T * derivative(VT, T) 
+
 def vJ(alphap):
     v = (alphap * (2 + 3 * alphap)) ** 0.5 + 1
     v = v / ((1 + alphap) * 3**0.5)
