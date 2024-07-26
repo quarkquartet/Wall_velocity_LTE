@@ -1,5 +1,5 @@
 import numpy as np
-from scipy import optimize
+from scipy import optimize, interpolate
 
 
 def derivative(f, x, eps=1e-5, order=1):
@@ -82,6 +82,9 @@ def ω(V, T, vev):
         return V(v, T)
     return - T * derivative(VT, T) 
 
+def s(v, T):
+    return -T/(1-v**2)**0.5
+
 def vJ(alphap):
     v = (alphap * (2 + 3 * alphap)) ** 0.5 + 1
     v = v / ((1 + alphap) * 3**0.5)
@@ -117,3 +120,20 @@ def dvTdxi(xi, y, *args):
     dvdxi = dvdxi / (1 - v * xi) / (μ(xi, v) ** 2 / cs_sq(V, T, vev) - 1)
     dTdxi = T * μ(xi, v) * dvdxi / (1 - v**2)
     return np.array([dvdxi, dTdxi])
+
+def find_vw_ds(vwlist, dslist):
+    ds_vw = interpolate.interp1d(np.array(vwlist), np.array(dslist), kind='linear')
+    vwmin = min(vwlist)
+    vwmax = max(vwlist)
+    vwreal = None
+    try:
+        vwreal = optimize.brentq(ds_vw(x), (vwmin + vwmax)*.5)
+    except KeyError as err:
+        print('vw not found due to KeyError: %s' % err)
+    except ValueError as err:
+        print('vw not found due to ValueError: %s' % err)
+    except:
+        print('vw not found due to unexpected error')
+
+    return vwreal
+    

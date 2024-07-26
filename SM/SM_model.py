@@ -74,7 +74,8 @@ class SM(gp.generic_potential):
             1e4  # The renormalization scale squared in the Coleman-Weinberg potential
         )
         self.Teps = Teps  # T steps in searching for nucleation temperature
-        print("Model inialized.")
+        self.hvev = None # The vev in false vacuum
+        print("Model initialized.")
         print("g2 = " + str(self.g2))
         print("λ = " + str(self.λ))
         print("μh = " + str(self.μh))
