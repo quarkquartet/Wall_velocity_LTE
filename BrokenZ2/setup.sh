@@ -1,5 +1,5 @@
 #!/bin/bash
 
 conda deactivate
-conda activate py2
-export PYTHONPATH="${PYTHONPATH}:${PWD}/cosmoTransitions"
+conda activate py3-10-9
+export PYTHONPATH="${PYTHONPATH}:${PWD}/model"

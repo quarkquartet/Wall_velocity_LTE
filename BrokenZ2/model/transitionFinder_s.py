@@ -1185,8 +1185,8 @@ def addCritTempsForFullTransitions(phases, crit_trans, full_trans):
 
 
 # Tong: Add dS/dT for GW
-def dSdT(V, dV, xlow, xhigh, Tnuc, phitol=1e-8, fullTunneling_params={}):
-    T_eps = 1.0  # Try reducing resolution because the precision for action calculation is limited.
+def dSdT(V, dV, xlow, xhigh, Tnuc, T_eps, phitol=1e-8, fullTunneling_params={}):
+    #T_eps = 0.5  # Try reducing resolution because the precision for action calculation is limited.
     deriv_order = 2
     if deriv_order == 2:
         Tm = Tnuc - T_eps

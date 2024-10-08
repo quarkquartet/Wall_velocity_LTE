@@ -18,6 +18,19 @@ def derivative(f, x, eps=1e-5, order=1):
     if order == 2:
         return (f(x - 2 * δx) - f(x - δx) - f(x + δx) + f(x + 2 * δx)) / (3 * δx**2)
 
+def d4f(V, X, T, eps=1e-3):
+    """
+    Calculate 4-th derivative of a 2-d function
+    d^4 V/(dh^2 ds^2).
+    """
+    X = np.asanyarray(X, dtype=float)
+    def VT(X):
+        return V(X, T)
+    x1, x2 = X[...,0], X[...,1]
+    dx1, dx2 = eps, eps
+    def dh2(s):
+        return (VT([x1-2*dx1, s]) - VT([x1-dx1, s]) - VT([x1+dx1, s]) + VT([x1+2*dx1, s])) / (3*dx1**2)
+    return (dh2(x2 - 2*dx2) - dh2(x2 - dx2) - dh2(x2 + dx2) + dh2(x2 + 2*dx2)) / (3 * dx2**2)
 
 def cs_sq(V, T, vev):
     """Sound speed square."""
@@ -66,6 +79,25 @@ def r_func(V, Tp, Tm, high_vev, low_vev):
     return a(V, Tp, high_vev) * Tp**4 / (a(V, Tm, low_vev) * Tm**4)
 
 
+def p(V, T, vev):
+    v = optimize.fmin(V, vev, args=(T,), disp=0)
+    return -V(v, T)
+
+def e(V, T, vev):
+    v = optimize.fmin(V, vev, args=(T,), disp=0)
+    def VT(T):
+        return V(v, T)
+    return - T * derivative(VT, T) + VT(T)
+
+def ω(V, T, vev):
+    v = optimize.fmin(V, vev, args=(T,), disp=0)
+    def VT(T):
+        return V(v, T)
+    return - T * derivative(VT, T) 
+
+def s(v, T):
+    return -T/(1-v**2)**0.5
+
 def vJ(alphap):
     v = (alphap * (2 + 3 * alphap)) ** 0.5 + 1
     v = v / ((1 + alphap) * 3**0.5)
@@ -101,3 +133,20 @@ def dvTdxi(xi, y, *args):
     dvdxi = dvdxi / (1 - v * xi) / (μ(xi, v) ** 2 / cs_sq(V, T, vev) - 1)
     dTdxi = T * μ(xi, v) * dvdxi / (1 - v**2)
     return np.array([dvdxi, dTdxi])
+
+def find_vw_ds(vwlist, dslist):
+    ds_vw = interpolate.interp1d(np.array(vwlist), np.array(dslist), kind='linear')
+    vwmin = min(vwlist) 
+    vwmax = max(vwlist)
+    vwreal = None
+    try:
+        vwreal = optimize.brentq(ds_vw(x), (vwmin + vwmax)*.5)
+    except KeyError as err:
+        print('vw not found due to KeyError: %s' % err)
+    except ValueError as err:
+        print('vw not found due to ValueError: %s' % err)
+    except:
+        print('vw not found due to unexpected error')
+
+    return vwreal
+

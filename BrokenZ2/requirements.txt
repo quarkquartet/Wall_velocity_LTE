@@ -1,4 +1,0 @@
-numpy
-matplotlib
-deepdish
-cosmoTransitions
